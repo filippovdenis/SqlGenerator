@@ -11,7 +11,13 @@ namespace SqlGenerator
         public string TableName { get; set; }
         public string PrimaryKey { get; set; }
         public string ForeignKey { get; set; }
-        public List<TableHierarchy> childHierarchy { get; set; }       
-
+        public List<TableHierarchy> childHierarchy { get; set; }     
+        public string TableAlias
+        {
+            get
+            {
+                return "xm" + TableName;
+            }
+        } 
     }
 }

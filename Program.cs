@@ -15,8 +15,8 @@ namespace SqlGenerator
         Server server;
         Database db;
         bool first = true;
-        string newId = "newId";
-        string oldId = "oldId";
+        string newId = "NewIdValue";
+        string oldId = "OldIdValue";
 
 
         private static string QuoteName(string name)
@@ -47,6 +47,18 @@ namespace SqlGenerator
             return res;
         }
 
+        public string GenerateSelect(TableHierarchy tableHierarchy, string parentIdMap)
+        {
+            
+            string fieldList = GenerateFieldList(tableHierarchy, false, true, "idMap");
+            string res = $"SELECT {fieldList} FROM {Program.QuoteName(tableHierarchy.TableName)}";
+            if (tableHierarchy.ForeignKey != "" && tableHierarchy.ForeignKey != null)
+            {
+                res += $" JOIN {parentIdMap} idMap ON idMap.{oldId}={Program.QuoteName(tableHierarchy.ForeignKey)}";
+            }
+            return res;
+        }
+
         public string GenerateFieldList(TableHierarchy tableHierarchy, bool removePK = false, bool substituteFK = false, string parentIdMap = "")
         {
             string res = "";
@@ -72,7 +84,7 @@ namespace SqlGenerator
                     if (col.ToString().Equals(Program.QuoteName(tableHierarchy.ForeignKey)))
                     {
                         needCheck = false;
-                        currentColumn = parentIdMap + ".newId";
+                        currentColumn = $"{parentIdMap}.{newId}";
                     }
                 }
 
@@ -99,26 +111,12 @@ namespace SqlGenerator
         {
             TableHierarchy tableHier = new TableHierarchy
             {
-                TableName = "ArticleGroup",
-                PrimaryKey = "ArticleGroupId",
-                childHierarchy = new List<TableHierarchy>
-                {
-                    new TableHierarchy
-                    {
-                        TableName = "Article",
-                        PrimaryKey = "ArticleId",
-                        ForeignKey = "ArticleGroupId"
-                    },
-                    new TableHierarchy
-                    {
-                        TableName = "ArticleGroupLabel",
-                        PrimaryKey = "ArticleGroupLabelId",
-                        ForeignKey = "ArticleGroupId"
-                    }
-                }
+                TableName = "Article",
+                PrimaryKey = "ArticleId",
+                //ForeignKey = "ArticleGroupId"
             };
             Program p = new Program();
-            string sql = p.GenerateFieldList(tableHier);
+            string sql = p.GenerateSelect(tableHier, "#ArticleGroupMap");
             Console.WriteLine(sql);
             Console.WriteLine("===========FINISH============");
             Console.ReadKey();
